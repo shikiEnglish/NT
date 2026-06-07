@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173f33">
+  <title>Read Aloud Practice</title>
+  <style>
+    :root {
+      --forest-950: #102b24;
+      --forest-800: #1f5142;
+      --forest-650: #38705d;
+      --leaf: #78a96d;
+      --paper: #fbfaf5;
+      --ink: #21332c;
+      --muted: #65746d;
+      --sun: #e0a03b;
+      --line: #d9e0d8;
+      --shadow: 0 24px 70px rgba(14, 47, 37, 0.2);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Segoe UI", "Yu Gothic UI", "Yu Gothic", sans-serif;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(181, 205, 147, 0.35), transparent 28rem),
+        radial-gradient(circle at 92% 92%, rgba(74, 130, 104, 0.35), transparent 32rem),
+        #e9eee5;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.28;
+      background-image:
+        linear-gradient(115deg, transparent 48%, rgba(255,255,255,0.7) 49%, transparent 50%),
+        linear-gradient(65deg, transparent 48%, rgba(29,80,65,0.12) 49%, transparent 50%);
+      background-size: 42px 42px;
+      pointer-events: none;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .page {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 42px 0 52px;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 10px;
+      color: var(--forest-650);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 24px;
+      height: 2px;
+      background: var(--sun);
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--forest-950);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.5rem, 6vw, 5.2rem);
+      font-weight: 500;
+      letter-spacing: -0.055em;
+      line-height: 0.94;
+    }
+
+    .intro {
+      max-width: 410px;
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.75;
+    }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 26px;
+      background: rgba(251,250,245,0.94);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .player {
+      display: grid;
+      grid-template-columns: auto minmax(180px, 1fr) auto;
+      gap: 22px;
+      align-items: center;
+      padding: 22px 26px;
+      color: white;
+      background:
+        linear-gradient(120deg, rgba(255,255,255,0.06), transparent 45%),
+        var(--forest-950);
+    }
+
+    .transport {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .icon-button {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      color: white;
+      background: rgba(255,255,255,0.07);
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+
+    .icon-button:hover {
+      border-color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.14);
+      transform: translateY(-1px);
+    }
+
+    .icon-button.primary {
+      width: 54px;
+      height: 54px;
+      border: none;
+      color: var(--forest-950);
+      background: var(--sun);
+      box-shadow: 0 8px 22px rgba(224,160,59,0.28);
+    }
+
+    .icon-button svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .time {
+      min-width: 40px;
+      color: rgba(255,255,255,0.72);
+      font-variant-numeric: tabular-nums;
+      font-size: 0.76rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      margin: 0;
+      accent-color: var(--sun);
+      cursor: pointer;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 20px;
+      border-left: 1px solid rgba(255,255,255,0.16);
+    }
+
+    .speed-control button {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      color: white;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .speed-value {
+      min-width: 46px;
+      color: white;
+      font-size: 0.88rem;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .reading-wrap {
+      position: relative;
+      min-height: 390px;
+      padding: clamp(28px, 5vw, 58px);
+    }
+
+    .reading-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--forest-650);
+      font-weight: 750;
+    }
+
+    .status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--leaf);
+      box-shadow: 0 0 0 5px rgba(120,169,109,0.14);
+    }
+
+    .reading {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.18rem, 2.1vw, 1.62rem);
+      line-height: 1.92;
+      letter-spacing: 0.002em;
+    }
+
+    .sentence {
+      display: inline;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 180ms ease;
+    }
+
+    .sentence:hover,
+    .sentence:focus-visible {
+      background: rgba(120,169,109,0.12);
+      outline: none;
+    }
+
+    .word {
+      display: inline;
+      opacity: 1;
+      transition: color 120ms linear, text-shadow 120ms linear;
+      will-change: opacity;
+    }
+
+    .word.current {
+      color: #a66400;
+      text-shadow: 0 0 18px rgba(224,160,59,0.32);
+    }
+
+    .completion {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      gap: 12px;
+      padding: 28px;
+      color: var(--forest-950);
+      text-align: center;
+      background: rgba(251,250,245,0.9);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 350ms ease;
+    }
+
+    .completion.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .completion strong {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2rem;
+      font-weight: 500;
+    }
+
+    .text-button {
+      justify-self: center;
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 999px;
+      color: white;
+      background: var(--forest-800);
+      cursor: pointer;
+    }
+
+    .settings {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 26px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      background: #f4f5ef;
+      font-size: 0.8rem;
+    }
+
+    .settings label {
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .settings input {
+      max-width: 220px;
+    }
+
+    #offsetValue {
+      min-width: 44px;
+      color: var(--forest-800);
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+    }
+
+    .hint {
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .error {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #fff3d6;
+      color: #674400;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .error-actions {
+      display: flex;
+      margin-top: 12px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ghost-button {
+      padding: 9px 14px;
+      border: 1px solid rgba(33,51,44,0.22);
+      border-radius: 999px;
+      background: white;
+      color: var(--forest-800);
+      cursor: pointer;
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        width: min(100% - 20px, 680px);
+        padding: 24px 0;
+      }
+
+      .masthead {
+        display: block;
+      }
+
+      .intro {
+        margin-top: 16px;
+      }
+
+      .player {
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        padding: 18px;
+      }
+
+      .transport {
+        grid-column: 1;
+      }
+
+      .timeline {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
+      .speed-control {
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .reading-wrap {
+        min-height: 480px;
+        padding: 28px 22px;
+      }
+
+      .settings {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 16px 20px;
+      }
+
+      .hint {
+        width: 100%;
+        margin: 2px 0 0;
+        text-align: left;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow" id="lessonEyebrow">Read Aloud Practice</p>
+        <h1 id="lessonTitle">Loading...</h1>
+      </div>
+      <p class="intro" id="lessonIntro">Lesson data is loading.</p>
+    </header>
+
+    <section class="card" aria-label="Read aloud practice player">
+      <audio id="audio" preload="metadata"></audio>
+
+      <div class="player">
+        <div class="transport">
+          <button class="icon-button" id="backButton" type="button" aria-label="5 seconds back" title="5 seconds back">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a6 6 0 1 1-5.65 8H4.26A8 8 0 1 0 12 5Z"/></svg>
+          </button>
+          <button class="icon-button primary" id="playButton" type="button" aria-label="Play" title="Play">
+            <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg>
+          </button>
+          <button class="icon-button" id="resetButton" type="button" aria-label="Return to start" title="Return to start">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6V6Zm3 6 9 6V6l-9 6Z"/></svg>
+          </button>
+        </div>
+
+        <div class="timeline">
+          <span class="time" id="currentTime">0:00</span>
+          <input id="seek" type="range" min="0" max="0" step="0.01" value="0" aria-label="Playback position">
+          <span class="time" id="duration">0:00</span>
+        </div>
+
+        <div class="speed-control" aria-label="Playback speed">
+          <button id="slowerButton" type="button" aria-label="Slow down">−</button>
+          <span class="speed-value" id="speedValue">1.0×</span>
+          <button id="fasterButton" type="button" aria-label="Speed up">+</button>
+        </div>
+      </div>
+
+      <div class="reading-wrap">
+        <div class="reading-meta">
+          <span class="status" id="status">Loading lesson...</span>
+          <span id="lessonStats">0 words · 0 sentences</span>
+        </div>
+        <div class="reading" id="reading" lang="en"></div>
+        <div class="error" id="errorBox"></div>
+        <div class="error-actions" id="errorActions">
+          <button class="ghost-button" id="pickLessonButton" type="button">Choose lesson.json</button>
+          <input id="lessonPicker" type="file" accept=".json,application/json" hidden>
+          <span id="errorHelp" style="align-self:center;color:#674400;font-size:0.85rem;">Click the button and select the JSON file from this folder.</span>
+        </div>
+
+        <div class="completion" id="completion">
+          <strong>Nice reading.</strong>
+          <span>That one is done.</span>
+          <button class="text-button" id="againButton" type="button">Read again</button>
+        </div>
+      </div>
+
+      <div class="settings">
+        <label for="offset">Sync offset</label>
+        <input id="offset" type="range" min="-3" max="3" step="0.1" value="0" aria-label="Sync offset">
+        <span id="offsetValue">0.0s</span>
+        <span class="hint">Move left if words disappear too late, right if they disappear too early.</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const audio = document.querySelector("#audio");
+    const reading = document.querySelector("#reading");
+    const lessonTitle = document.querySelector("#lessonTitle");
+    const lessonEyebrow = document.querySelector("#lessonEyebrow");
+    const lessonIntro = document.querySelector("#lessonIntro");
+    const lessonStats = document.querySelector("#lessonStats");
+    const playButton = document.querySelector("#playButton");
+    const playIcon = document.querySelector("#playIcon");
+    const backButton = document.querySelector("#backButton");
+    const resetButton = document.querySelector("#resetButton");
+    const againButton = document.querySelector("#againButton");
+    const seek = document.querySelector("#seek");
+    const currentTimeLabel = document.querySelector("#currentTime");
+    const durationLabel = document.querySelector("#duration");
+    const statusLabel = document.querySelector("#status");
+    const completion = document.querySelector("#completion");
+    const speedValue = document.querySelector("#speedValue");
+    const offsetInput = document.querySelector("#offset");
+    const offsetValue = document.querySelector("#offsetValue");
+    const errorBox = document.querySelector("#errorBox");
+    const errorActions = document.querySelector("#errorActions");
+    const pickLessonButton = document.querySelector("#pickLessonButton");
+    const lessonPicker = document.querySelector("#lessonPicker");
+
+    const storage = {
+      get(key, fallback) {
+        try {
+          const value = Number(localStorage.getItem(key));
+          return Number.isFinite(value) ? value : fallback;
+        } catch {
+          return fallback;
+        }
+      },
+      set(key, value) {
+        try {
+          localStorage.setItem(key, String(value));
+        } catch {
+          // Fine to ignore if the browser blocks storage.
+        }
+      }
+    };
+
+    const state = {
+      lesson: null,
+      words: [],
+      sentences: [],
+      duration: 0,
+      speed: storage.get("readingSpeed", 1),
+      offset: storage.get("readingOffset", 0),
+      frameId: null
+    };
+
+    function formatTime(value) {
+      if (!Number.isFinite(value)) return "0:00";
+      const minutes = Math.floor(value / 60);
+      const seconds = Math.floor(value % 60).toString().padStart(2, "0");
+      return `${minutes}:${seconds}`;
+    }
+
+    function wordWeight(text) {
+      const letters = text.replace(/[^\p{L}\p{N}]/gu, "").length;
+      let weight = 0.72 + Math.min(letters, 11) * 0.05;
+      if (/[,;:]$/.test(text)) weight += 0.28;
+      if (/[.!?]$/.test(text)) weight += 0.62;
+      return weight;
+    }
+
+    function setPlayingIcon(isPlaying) {
+      playIcon.innerHTML = isPlaying
+        ? '<path d="M6 5h4v14H6V5Zm8 0h4v14h-4V5Z"/>'
+        : '<path d="M8 5v14l11-7Z"/>';
+      playButton.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
+      playButton.title = isPlaying ? "Pause" : "Play";
+    }
+
+    function saveSpeed(nextSpeed) {
+      state.speed = Math.min(2, Math.max(0.5, Math.round(nextSpeed * 10) / 10));
+      audio.playbackRate = state.speed;
+      speedValue.textContent = `${state.speed.toFixed(1)}×`;
+      storage.set("readingSpeed", state.speed);
+    }
+
+    function saveOffset(nextOffset) {
+      state.offset = Math.min(3, Math.max(-3, nextOffset));
+      offsetInput.value = state.offset;
+      offsetValue.textContent = `${state.offset > 0 ? "+" : ""}${state.offset.toFixed(1)}s`;
+      storage.set("readingOffset", state.offset);
+      update();
+    }
+
+    function loadLesson() {
+      return fetch("lesson.json", { cache: "no-store" }).then(response => {
+        if (!response.ok) {
+          throw new Error(`lesson.json returned ${response.status}`);
+        }
+        return response.json();
+      });
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.classList.add("show");
+      errorActions.style.display = "flex";
+      statusLabel.textContent = "Lesson not loaded";
+    }
+
+    function clearError() {
+      errorBox.textContent = "";
+      errorBox.classList.remove("show");
+      errorActions.style.display = "none";
+    }
+
+    function buildReading(sentences) {
+      reading.replaceChildren();
+      state.words = [];
+      state.sentences = [];
+
+      sentences.forEach((sentenceText, sentenceIndex) => {
+        const sentence = document.createElement("span");
+        sentence.className = "sentence";
+        sentence.tabIndex = 0;
+        sentence.setAttribute("role", "button");
+        sentence.setAttribute("aria-label", `Sentence ${sentenceIndex + 1}`);
+
+        sentenceText.split(/\s+/).forEach((wordText, wordIndex, sentenceWords) => {
+          const word = document.createElement("span");
+          word.className = "word";
+          word.textContent = wordText;
+          word.dataset.sentence = sentenceIndex;
+          sentence.append(word);
+          state.words.push(word);
+          if (wordIndex < sentenceWords.length - 1) sentence.append(" ");
+        });
+
+        sentence.addEventListener("click", () => jumpToSentence(sentenceIndex));
+        sentence.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            jumpToSentence(sentenceIndex);
+          }
+        });
+
+        reading.append(sentence);
+        if (sentenceIndex < sentences.length - 1) reading.append(" ");
+        state.sentences.push(sentence);
+      });
+    }
+
+    function calculateTimings(duration) {
+      state.duration = duration;
+      const startPadding = 0.25;
+      const endPadding = 0.35;
+      const usable = Math.max(1, duration - startPadding - endPadding);
+      const weights = state.words.map(word => wordWeight(word.textContent));
+      const totalWeight = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+      let cursor = startPadding;
+
+      state.words.forEach((word, index) => {
+        const wordDuration = usable * weights[index] / totalWeight;
+        word.dataset.start = cursor;
+        word.dataset.end = cursor + wordDuration;
+        cursor += wordDuration;
+      });
+    }
+
+    function jumpToSentence(sentenceIndex) {
+      const firstWord = state.words.find(word => Number(word.dataset.sentence) === sentenceIndex);
+      if (!firstWord) return;
+      audio.currentTime = Math.max(0, Number(firstWord.dataset.start) - state.offset);
+      update();
+      audio.play().catch(() => {});
+    }
+
+    function update() {
+      const syncTime = audio.currentTime + state.offset;
+      const fadeWindow = 0.34;
+      let activeSentence = -1;
+
+      state.words.forEach(word => {
+        const start = Number(word.dataset.start);
+        const end = Number(word.dataset.end);
+        const fadeStart = Math.max(start, end - fadeWindow);
+        let opacity = 1;
+
+        word.classList.remove("current");
+        if (syncTime >= end) {
+          opacity = 0;
+        } else if (syncTime >= fadeStart) {
+          opacity = Math.max(0, 1 - (syncTime - fadeStart) / Math.max(0.01, end - fadeStart));
+          word.classList.add("current");
+          activeSentence = Number(word.dataset.sentence);
+        } else if (syncTime >= start) {
+          word.classList.add("current");
+          activeSentence = Number(word.dataset.sentence);
+        }
+        word.style.opacity = opacity;
+      });
+
+      state.sentences.forEach((sentence, index) => {
+        sentence.setAttribute("aria-current", index === activeSentence ? "true" : "false");
+      });
+
+      seek.value = audio.currentTime;
+      currentTimeLabel.textContent = formatTime(audio.currentTime);
+      const finished = syncTime >= state.duration - 0.12 || audio.ended;
+      completion.classList.toggle("show", finished);
+
+      if (audio.paused) {
+        statusLabel.textContent = audio.currentTime === 0 ? "Ready" : finished ? "Finished" : "Paused";
+      } else {
+        statusLabel.textContent = "Reading";
+      }
+    }
+
+    function animationLoop() {
+      update();
+      if (!audio.paused && !audio.ended) {
+        state.frameId = requestAnimationFrame(animationLoop);
+      }
+    }
+
+    function resetReading(shouldPlay = false) {
+      audio.currentTime = 0;
+      completion.classList.remove("show");
+      update();
+      if (shouldPlay) audio.play().catch(() => {});
+    }
+
+    function applyLesson(lesson) {
+      state.lesson = lesson;
+      clearError();
+      lessonTitle.textContent = lesson.title || "Reading Practice";
+      lessonEyebrow.textContent = lesson.eyebrow || "Read Aloud Practice";
+      lessonIntro.textContent = lesson.intro || "";
+      document.title = `${lesson.title || "Reading Practice"} | ${lesson.eyebrow || "Read Aloud Practice"}`;
+      audio.src = lesson.audio || "";
+      buildReading(Array.isArray(lesson.sentences) ? lesson.sentences : []);
+      lessonStats.textContent = `${state.words.length} words · ${lesson.sentences.length} sentences`;
+      saveSpeed(state.speed);
+      saveOffset(state.offset);
+      update();
+    }
+
+    function loadLessonFromText(text) {
+      const lesson = JSON.parse(text);
+      applyLesson(lesson);
+    }
+
+    playButton.addEventListener("click", () => {
+      if (audio.ended) {
+        resetReading(true);
+      } else if (audio.paused) {
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
+    });
+
+    backButton.addEventListener("click", () => {
+      audio.currentTime = Math.max(0, audio.currentTime - 5);
+      update();
+    });
+
+    resetButton.addEventListener("click", () => resetReading(false));
+    againButton.addEventListener("click", () => resetReading(true));
+
+    seek.addEventListener("input", () => {
+      audio.currentTime = Number(seek.value);
+      update();
+    });
+
+    document.querySelector("#slowerButton").addEventListener("click", () => saveSpeed(state.speed - 0.1));
+    document.querySelector("#fasterButton").addEventListener("click", () => saveSpeed(state.speed + 0.1));
+
+    offsetInput.addEventListener("input", () => saveOffset(Number(offsetInput.value)));
+
+    pickLessonButton.addEventListener("click", () => lessonPicker.click());
+
+    lessonPicker.addEventListener("change", async () => {
+      const file = lessonPicker.files && lessonPicker.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        loadLessonFromText(text);
+      } catch (error) {
+        showError(`Could not read the selected file: ${error.message}`);
+      }
+    });
+
+    audio.addEventListener("loadedmetadata", () => {
+      const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      seek.max = duration;
+      durationLabel.textContent = formatTime(duration);
+      calculateTimings(duration || 1);
+      update();
+    });
+
+    audio.addEventListener("play", () => {
+      setPlayingIcon(true);
+      cancelAnimationFrame(state.frameId);
+      animationLoop();
+    });
+
+    audio.addEventListener("pause", () => {
+      setPlayingIcon(false);
+      cancelAnimationFrame(state.frameId);
+      update();
+    });
+
+    audio.addEventListener("ended", () => {
+      setPlayingIcon(false);
+      update();
+    });
+
+    audio.addEventListener("error", () => {
+      showError("The audio file could not be loaded. Check that `audio` in lesson.json points to the right MP3 file.");
+    });
+
+    document.addEventListener("keydown", event => {
+      const tag = document.activeElement.tagName;
+      if (event.code === "Space" && !["INPUT", "BUTTON"].includes(tag)) {
+        event.preventDefault();
+        playButton.click();
+      }
+    });
+
+    loadLesson()
+      .then(applyLesson)
+      .catch(error => {
+        showError(
+          "Auto-loading lesson.json failed. This usually happens when the page is opened with file://. " +
+          "Use the button below to choose lesson.json manually, or open the page through a local web server. " +
+          `Details: ${error.message}`
+        );
+      });
+  </script>
+</body>
+</html>
